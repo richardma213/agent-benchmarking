@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+sympy
+requests
+python-dotenv
