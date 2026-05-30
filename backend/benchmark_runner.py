@@ -1,12 +1,13 @@
-from agents.rule_agent import RuleAgent
+
 from agents.ml_agent import MLAgent
 from agents.math_agent import MathAgent
+from agents.ml_agent1 import MlAgent1
 
 def run_benchmark(problem: str):
     agents = {
-        "rule_agent": RuleAgent(),
         "ml_agent": MLAgent(),
-        "math_agent": MathAgent()  # inside, router will call parser
+        "math_agent": MathAgent(),  # inside, router will call parser
+        #"math_agent1" : MlAgent1()  # inside, router will call parser
     }
     results = {}
     for name, agent in agents.items():

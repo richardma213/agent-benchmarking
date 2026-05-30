@@ -1,31 +1,20 @@
 import re
 
 def parse_limit(query: str):
-    # Matches: "limit of sin(x)/x as x approaches 0"
-    match = re.search(r'limit of (.+) as (\w+) approaches ([\d\.\-]+)', query)
-    if match:
-        expr, var, point = match.groups()
-        return f"limit({expr}, {var}, {point})"
-    return None
+    # Detects "limit ... as x->0" or "limit of ... as x approaches 0"
+    return bool(re.search(r'limit(?: of)? .+ as \w+ (?:->|approaches) ', query))
+
 
 def parse_diff(query: str):
-    # Matches: "differentiate sin(x) wrt x"
-    match = re.search(r'differentiate (.+) wrt (\w+)', query)
-    if match:
-        expr, var = match.groups()
-        return f"diff({expr}, {var})"
-    return None
+    # Detects "differentiate sin(x) wrt x" or "diff sin(x) x"
+    return bool(re.search(r'(?:differentiate|diff) ', query))
+
 
 def parse_integrate(query: str):
-    # Matches: "integrate sin(x) wrt x"
-    match = re.search(r'integrate (.+) wrt (\w+)', query)
-    if match:
-        expr, var = match.groups()
-        return f"integrate({expr}, {var})"
-    return None
+    # Detects "integrate ..." (with or without wrt)
+    return bool(re.search(r'integrate ', query))
+
 
 def parse_equation(query: str):
-    # Matches: "solve x^2 - 4 = 0"
-    if "=" in query:
-        return query
-    return None
+    # Detects "=" anywhere
+    return "=" in query

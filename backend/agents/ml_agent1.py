@@ -3,7 +3,8 @@ import os
 from openai import OpenAI
 from .base_agent import BaseAgent
 
-class MLAgent(BaseAgent):
+
+class MlAgent1(BaseAgent):
     def __init__(self, model_name="Qwen/Qwen2.5-7B-Instruct", hf_token=None):
         self.model_name = model_name
         self.hf_token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN")
