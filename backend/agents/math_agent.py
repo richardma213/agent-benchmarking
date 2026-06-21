@@ -4,7 +4,7 @@ from .math_operations import router
 from openai import OpenAI
 
 class MathAgent(BaseAgent):
-    def __init__(self, model_name="qwen2.5-7b-instruct-1m", local=True, hf_token=None):
+    def __init__(self, model_name="qwen2.5-3b-instruct", local=True, hf_token=None):
         self.model_name = model_name
 
         if local:

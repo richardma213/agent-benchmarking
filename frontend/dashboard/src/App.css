@@ -11,28 +11,7 @@
 
 .app-shell::before,
 .app-shell::after {
-  content: '';
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.app-shell::before {
-  background: var(--backdrop-glow);
-  opacity: 0.95;
-  animation: glowDrift 22s ease-in-out infinite alternate;
-}
-
-.app-shell::after {
-  background:
-    radial-gradient(circle at 18% 84%, rgba(118, 130, 255, 0.22), transparent 32%),
-    radial-gradient(circle at 74% 74%, rgba(248, 87, 166, 0.18), transparent 30%),
-    var(--gpubg);
-  mix-blend-mode: screen;
-  filter: blur(12px);
-  opacity: 0.65;
-  animation: glowPulse 14s ease-in-out infinite;
+  content: none;
 }
 
 .navbar,
@@ -45,9 +24,8 @@
   margin: 20px 24px 0;
   padding: 14px 18px;
   border: 1px solid var(--border-subtle);
-  border-radius: 22px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(16px);
+  border-radius: 14px;
+  background: var(--navbar-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,8 +40,8 @@
 .agent-card h3,
 .history-item h3 {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  letter-spacing: -0.02em;
+  font-family: 'Aptos', 'Segoe UI', sans-serif;
+  letter-spacing: -0.01em;
 }
 
 .navbar-brand h1 {
@@ -80,7 +58,7 @@
 .primary-button,
 .secondary-button {
   border: 0;
-  border-radius: 999px;
+  border-radius: 10px;
   font: inherit;
   transition:
     transform 160ms ease,
@@ -93,19 +71,17 @@
   text-align: left;
   background: transparent;
   color: var(--text-muted);
-  padding: 10px 14px;
+  padding: 10px 12px;
 }
 
 .nav-item:hover,
 .nav-item.active {
-  background: var(--gpubg);
+  background: var(--button-primary-bg);
   color: var(--nav-active-text);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(87, 74, 171, 0.18);
 }
 
 .main-panel {
-  padding: 28px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -135,14 +111,14 @@
 .agent-card,
 .history-item {
   border: 1px solid var(--border-subtle);
-  border-radius: 28px;
+  border-radius: 16px;
   background: var(--card-gradient);
   box-shadow: var(--shadow-card);
 }
 
 .hero-card,
 .panel-card {
-  padding: 28px;
+  padding: 24px;
 }
 
 .hero-card {
@@ -268,7 +244,7 @@ dt {
   grid-template-columns: 1.2fr 1fr 1fr 0.7fr;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--panel-bg);
 }
 
@@ -294,7 +270,7 @@ dt {
 .field input,
 .field textarea {
   width: 100%;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--border-default);
   background: var(--panel-bg);
   padding: 14px 16px;
@@ -307,7 +283,7 @@ dt {
 .error-banner {
   margin: 16px 0 0;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--error-bg);
   color: var(--error-text);
 }
@@ -336,7 +312,7 @@ dt {
 }
 
 .agent-card.accent {
-  background: linear-gradient(135deg, var(--accent-card-start), var(--accent-card-end));
+  background: var(--accent-card-start);
   color: var(--accent-card-text);
 }
 
@@ -396,40 +372,18 @@ dt {
 .modal-card {
   width: min(720px, 100%);
   border: 1px solid var(--border-subtle);
-  border-radius: 22px;
+  border-radius: 16px;
   background: var(--card-gradient);
   box-shadow: var(--shadow-elevated);
   padding: 24px;
 }
 
-@keyframes glowDrift {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-2%, 1.5%, 0) scale(1.05);
-  }
-  100% {
-    transform: translate3d(2.5%, -1.2%, 0) scale(1.08);
-  }
-}
-
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.52;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.78;
-    transform: scale(1.07);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .app-shell::before,
-  .app-shell::after {
-    animation: none;
+  .primary-button,
+  .secondary-button,
+  .nav-item,
+  .history-item button {
+    transition: none;
   }
 }
 
