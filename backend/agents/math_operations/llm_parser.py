@@ -16,17 +16,25 @@ if load_dotenv is not None:
 
 
 class LLMParser:
-    def __init__(self, model_name="Qwen/Qwen2.5-7B-Instruct", hf_token=None):
+    def __init__(self, model_name="qwen2.5-7b-instruct-1m", local=True, hf_token=None):
         self.model_name = model_name
-        self.hf_token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
-        if OpenAI and self.hf_token:
+        if local:
+            # Use LM Studio local server
+            self.client = OpenAI(
+                base_url="http://localhost:1234/v1",
+                api_key="lm-studio",  # LM Studio ignores this
+            )
+        else:
+            # Use HuggingFace Router
+            self.hf_token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN")
+            if not self.hf_token:
+                raise ValueError("HF token required when local=False")
+
             self.client = OpenAI(
                 base_url="https://router.huggingface.co/v1",
                 api_key=self.hf_token,
             )
-        else:
-            self.client = None
 
     # ---------------------------------------------------------
     # Generic prompt
@@ -105,3 +113,4 @@ class LLMParser:
             "SymPy:"
         )
         return self._query_remote(prompt)
+

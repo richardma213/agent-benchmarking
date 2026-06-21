@@ -1,7 +1,6 @@
 
 from agents.ml_agent import MLAgent
 from agents.math_agent import MathAgent
-from agents.ml_agent1 import MlAgent1
 
 def run_benchmark(problem: str):
     agents = {

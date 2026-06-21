@@ -1,8 +1,26 @@
 import time
 from .base_agent import BaseAgent
 from .math_operations import router
+from openai import OpenAI
 
 class MathAgent(BaseAgent):
+    def __init__(self, model_name="qwen2.5-7b-instruct-1m", local=True, hf_token=None):
+        self.model_name = model_name
+
+        if local:
+            # LM Studio local server
+            self.client = OpenAI(
+                base_url="http://localhost:1234/v1",
+                api_key="lm-studio",  # dummy key
+            )
+        else:
+            # Hugging Face Router fallback
+            self.hf_token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN")
+            self.client = OpenAI(
+                base_url="https://router.huggingface.co/v1",
+                api_key=self.hf_token,
+            )
+
     def solve(self, problem: str) -> dict:
         start = time.time()
         try:
