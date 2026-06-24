@@ -16,8 +16,9 @@ function HistoryPage({ history, onInspect, formatTimestamp }) {
           {history.map((entry) => (
             <article key={entry.id} className="history-item">
               <div>
-                <h3>{entry.problem}</h3>
+                <h3>{entry.title ?? entry.problem}</h3>
                 <p>{formatTimestamp(entry.createdAt)}</p>
+                {entry.runType === 'batch' && <p className="timestamp">Batch run stored locally</p>}
               </div>
               <button className="secondary-button" onClick={() => onInspect(entry)}>
                 Inspect

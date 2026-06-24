@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import DetailsPage from './pages/DetailsPage';
 import HistoryPage from './pages/HistoryPage';
 import OverviewPage from './pages/OverviewPage';
 import RunnerPage from './pages/RunnerPage';
+import MultiRunnerPage from './pages/MultiRunnerPage';
+import { fetchBenchmark, getAgentRows } from './lib/benchmarkApi';
+import {
+  buildTrialOutcome,
+  createBatchRunRecord,
+  parseTrialsFile,
+} from './lib/multiRunner';
 
 const DEFAULT_API_URL = 'http://localhost:8000';
 const DEFAULT_PROBLEM = '2+2*3';
@@ -16,9 +22,9 @@ const STORAGE_KEYS = {
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Home / Overview' },
-  { id: 'runner', label: 'Benchmark Runner' },
+  { id: 'runner', label: 'Single Runner' },
+  { id: 'multi-runner', label: 'Multi Runner' },
   { id: 'history', label: 'History / Results' },
-  { id: 'details', label: 'Agent Details' },
 ];
 
 function loadJson(key, fallback) {
@@ -38,13 +44,8 @@ function formatTimestamp(timestamp) {
   return new Date(timestamp).toLocaleString();
 }
 
-function getAgentRows(results) {
-  return Object.entries(results ?? {}).map(([agentName, metrics]) => ({
-    agentName,
-    answer: metrics.answer,
-    tokens: metrics.tokens,
-    latency: metrics.latency,
-  }));
+function isBatchRun(entry) {
+  return entry?.runType === 'batch';
 }
 
 function App() {
@@ -56,6 +57,16 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
+  const [multiRunner, setMultiRunner] = useState({
+    fileName: '',
+    trials: [],
+    fileError: null,
+    runError: null,
+    running: false,
+    progress: { current: 0, total: 0 },
+    results: [],
+    lastRunAt: null,
+  });
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
@@ -98,15 +109,10 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/benchmark?problem=${encodeURIComponent(problem)}`);
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchBenchmark(apiUrl, problem);
       const benchmarkRun = {
         id: crypto.randomUUID(),
+        runType: 'single',
         problem,
         createdAt: new Date().toISOString(),
         results: data,
@@ -122,16 +128,137 @@ function App() {
     }
   };
 
-  const latestRun = results ?? history[0] ?? null;
+  const latestRun = results ?? history.find((entry) => !isBatchRun(entry)) ?? null;
   const agentRows = useMemo(() => getAgentRows(latestRun?.results), [latestRun]);
   const totalTokens = agentRows.reduce((sum, row) => sum + (Number(row.tokens) || 0), 0);
-  const slowestAgent = agentRows.reduce((slowest, row) => {
-    if (!slowest || row.latency > slowest.latency) {
-      return row;
+
+  const handleMultiRunnerAttachFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
     }
 
-    return slowest;
-  }, null);
+    setMultiRunner((currentState) => ({
+      ...currentState,
+      fileError: null,
+      runError: null,
+    }));
+
+    try {
+      const parsedTrials = await parseTrialsFile(file);
+      setMultiRunner({
+        fileName: file.name,
+        trials: parsedTrials,
+        fileError: null,
+        runError: null,
+        running: false,
+        progress: { current: 0, total: parsedTrials.length },
+        results: [],
+        lastRunAt: null,
+      });
+    } catch (err) {
+      setMultiRunner({
+        fileName: file.name,
+        trials: [],
+        fileError: err.message,
+        runError: null,
+        running: false,
+        progress: { current: 0, total: 0 },
+        results: [],
+        lastRunAt: null,
+      });
+    }
+  };
+
+  const handleRunMultiRunner = async () => {
+    if (!multiRunner.trials.length || multiRunner.running) {
+      return;
+    }
+
+    const currentTrials = multiRunner.trials;
+    const currentFileName = multiRunner.fileName;
+
+    setMultiRunner((currentState) => ({
+      ...currentState,
+      running: true,
+      runError: null,
+      fileError: null,
+      progress: { current: 0, total: currentTrials.length },
+    }));
+
+    const collectedResults = [];
+
+    try {
+      for (let index = 0; index < currentTrials.length; index += 1) {
+        const trial = currentTrials[index];
+
+        setMultiRunner((currentState) => ({
+          ...currentState,
+          progress: { current: index, total: currentTrials.length },
+        }));
+
+        try {
+          const response = await fetchBenchmark(apiUrl, trial.problem);
+          collectedResults.push(buildTrialOutcome(trial, response));
+        } catch (err) {
+          collectedResults.push({
+            ...trial,
+            createdAt: new Date().toISOString(),
+            error: err.message,
+            agentRows: [],
+            matchedAgents: [],
+            matched: false,
+            totalTokens: 0,
+          });
+        }
+      }
+
+      const completedRun = createBatchRunRecord({
+        fileName: currentFileName,
+        trials: currentTrials,
+        results: collectedResults,
+      });
+
+      setMultiRunner((currentState) => ({
+        ...currentState,
+        running: false,
+        progress: { current: currentTrials.length, total: currentTrials.length },
+        results: collectedResults,
+        lastRunAt: completedRun.createdAt,
+      }));
+
+      setHistory((currentHistory) => [completedRun, ...currentHistory].slice(0, 5));
+    } catch (err) {
+      setMultiRunner((currentState) => ({
+        ...currentState,
+        running: false,
+        progress: { current: currentTrials.length, total: currentTrials.length },
+        runError: err.message,
+      }));
+    }
+  };
+
+  const handleHistoryInspect = (entry) => {
+    if (isBatchRun(entry)) {
+      setMultiRunner({
+        fileName: entry.fileName ?? entry.title ?? 'Saved batch run',
+        trials: entry.trials ?? [],
+        fileError: null,
+        runError: null,
+        running: false,
+        progress: { current: entry.results?.length ?? 0, total: entry.trials?.length ?? 0 },
+        results: entry.results ?? [],
+        lastRunAt: entry.createdAt ?? null,
+      });
+      setActivePage('multi-runner');
+      return;
+    }
+
+    setResults(entry);
+    setActivePage('overview');
+  };
 
   const renderedContent = {
     overview: (
@@ -164,8 +291,24 @@ function App() {
         formatLatency={formatLatency}
       />
     ),
-    history: <HistoryPage history={history} onInspect={setResults} formatTimestamp={formatTimestamp} />,
-    details: <DetailsPage agentRows={agentRows} slowestAgent={slowestAgent} formatLatency={formatLatency} />,
+    history: <HistoryPage history={history} onInspect={handleHistoryInspect} formatTimestamp={formatTimestamp} />,
+    'multi-runner': (
+      <MultiRunnerPage
+        apiUrl={apiUrl}
+        formatTimestamp={formatTimestamp}
+        formatLatency={formatLatency}
+        fileName={multiRunner.fileName}
+        trials={multiRunner.trials}
+        fileError={multiRunner.fileError}
+        runError={multiRunner.runError}
+        running={multiRunner.running}
+        progress={multiRunner.progress}
+        results={multiRunner.results}
+        lastRunAt={multiRunner.lastRunAt}
+        onAttachFile={handleMultiRunnerAttachFile}
+        onRunAllTrials={handleRunMultiRunner}
+      />
+    ),
   };
 
   return (
