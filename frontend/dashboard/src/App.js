@@ -201,7 +201,7 @@ function App() {
 
         try {
           const response = await fetchBenchmark(apiUrl, trial.problem);
-          collectedResults.push(buildTrialOutcome(trial, response));
+          collectedResults.push(await buildTrialOutcome(trial, response));
         } catch (err) {
           collectedResults.push({
             ...trial,
