@@ -110,19 +110,33 @@ function App() {
   const runBenchmark = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const data = await fetchBenchmark(apiUrl, problem);
+      const rawResults = await fetchBenchmark(apiUrl, problem);
+
+      const processedResults = await buildTrialOutcome(
+        { problem, expected: problem },
+        rawResults,
+        apiUrl
+      );
+
       const benchmarkRun = {
         id: crypto.randomUUID(),
         runType: 'single',
         problem,
         createdAt: new Date().toISOString(),
-        results: data,
+        rawResults,
+        results: processedResults,
+        agentRows: processedResults.agentRows ?? [],
+        matchedAgents: processedResults.matchedAgents ?? [],
+        matched: processedResults.matched ?? false,
+        totalTokens: processedResults.totalTokens ?? 0,
       };
 
       setResults(benchmarkRun);
       setHistory((currentHistory) => [benchmarkRun, ...currentHistory].slice(0, 5));
       setActivePage('overview');
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -130,9 +144,20 @@ function App() {
     }
   };
 
-  const latestRun = results ?? history.find((entry) => !isBatchRun(entry)) ?? null;
-  const agentRows = useMemo(() => getAgentRows(latestRun?.results), [latestRun]);
-  const totalTokens = agentRows.reduce((sum, row) => sum + (Number(row.tokens) || 0), 0);
+  const latestRun =
+    results ??
+    history.find((entry) => !isBatchRun(entry)) ??
+    null;
+
+  const agentRows = useMemo(
+    () => latestRun?.agentRows ?? getAgentRows(latestRun?.rawResults),
+    [latestRun]
+  );
+
+  const totalTokens = agentRows.reduce(
+    (sum, row) => sum + (Number(row.tokens) || 0),
+    0
+  );
 
   const handleMultiRunnerAttachFile = async (event) => {
     const file = event.target.files?.[0];
@@ -204,13 +229,31 @@ function App() {
         }));
 
         try {
-          const response = await fetchBenchmark(apiUrl, trial.problem);
-          collectedResults.push(await buildTrialOutcome(trial, response));
+          const rawResults = await fetchBenchmark(apiUrl, trial.problem);
+          const processedResults = await buildTrialOutcome(
+            trial,
+            rawResults,
+            apiUrl
+          );
+
+          collectedResults.push({
+            ...trial,
+            createdAt: new Date().toISOString(),
+            rawResults,
+            results: processedResults,
+            agentRows: processedResults.agentRows ?? [],
+            matchedAgents: processedResults.matchedAgents ?? [],
+            matched: processedResults.matched ?? false,
+            totalTokens: processedResults.totalTokens ?? 0,
+          });
+
         } catch (err) {
           collectedResults.push({
             ...trial,
             createdAt: new Date().toISOString(),
             error: err.message,
+            rawResults: [],
+            results: [],
             agentRows: [],
             matchedAgents: [],
             matched: false,
@@ -235,6 +278,7 @@ function App() {
       }));
 
       setHistory((currentHistory) => [completedRun, ...currentHistory].slice(0, 5));
+
     } catch (err) {
       setMultiRunner((currentState) => ({
         ...currentState,

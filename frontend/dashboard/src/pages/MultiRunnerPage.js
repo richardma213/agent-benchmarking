@@ -1,6 +1,5 @@
 import { useMemo, useRef } from 'react';
 import { summarizeAgentResults, summarizeRuns } from '../lib/multiRunner';
-import { normalizeComparableText } from '../lib/benchmarkApi';
 
 function StatusPill({ matched, error }) {
   const label = error ? 'Failed' : matched ? 'Matched' : 'No exact match';
@@ -30,9 +29,13 @@ function MultiRunnerPage({
   const agentSummary = useMemo(() => summarizeAgentResults(results), [results]);
 
   const correctPercentLabel = `${summary.correctPercent.toFixed(1)}%`;
-  const avgTokensLabel = summary.completed ? summary.averageTokensPerCompleted.toFixed(1) : '—';
-  const avgLatencyLabel = summary.averageLatencySeconds ? formatLatency(summary.averageLatencySeconds) : '—';
+  const avgTokensLabel = summary.completed
+    ? summary.averageTokensPerCompleted.toFixed(1)
+    : '—';
 
+  const avgLatencyLabel = summary.averageAgentLatency
+    ? formatLatency(summary.averageAgentLatency)
+    : '—';
   return (
     <div className="page-grid single-column">
       <section className="panel-card">
