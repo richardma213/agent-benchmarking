@@ -25,6 +25,7 @@ function MultiRunnerPage({
   onRemoveTrial,
 }) {
   const inputRef = useRef(null);
+
   const summary = useMemo(() => summarizeRuns(results), [results]);
   const agentSummary = useMemo(() => summarizeAgentResults(results), [results]);
 

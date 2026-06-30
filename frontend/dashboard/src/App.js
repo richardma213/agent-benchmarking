@@ -114,23 +114,17 @@ function App() {
     try {
       const rawResults = await fetchBenchmark(apiUrl, problem);
 
-      const processedResults = await buildTrialOutcome(
-        { problem, expected: problem },
-        rawResults,
-        apiUrl
-      );
-
       const benchmarkRun = {
         id: crypto.randomUUID(),
         runType: 'single',
         problem,
         createdAt: new Date().toISOString(),
         rawResults,
-        results: processedResults,
-        agentRows: processedResults.agentRows ?? [],
-        matchedAgents: processedResults.matchedAgents ?? [],
-        matched: processedResults.matched ?? false,
-        totalTokens: processedResults.totalTokens ?? 0,
+        results: rawResults,
+        agentRows: getAgentRows(rawResults),
+        matchedAgents: [],
+        matched: false,
+        totalTokens: getAgentRows(rawResults).reduce((sum, row) => sum + (Number(row.tokens) || 0), 0),
       };
 
       setResults(benchmarkRun);
@@ -150,7 +144,7 @@ function App() {
     null;
 
   const agentRows = useMemo(
-    () => latestRun?.agentRows ?? getAgentRows(latestRun?.rawResults),
+    () => latestRun?.agentRows ?? getAgentRows(latestRun?.rawResults ?? latestRun?.results),
     [latestRun]
   );
 
@@ -202,92 +196,91 @@ function App() {
   };
 
   const handleRunMultiRunner = async () => {
-    if (!multiRunner.trials.length || multiRunner.running) {
-      return;
+  if (!multiRunner.trials.length || multiRunner.running) {
+    return;
+  }
+
+  const currentTrials = multiRunner.trials;
+  const currentFileName = multiRunner.fileName;
+
+  setMultiRunner((currentState) => ({
+    ...currentState,
+    running: true,
+    runError: null,
+    fileError: null,
+    progress: { current: 0, total: currentTrials.length },
+  }));
+
+  const collectedResults = [];
+
+  try {
+    for (let index = 0; index < currentTrials.length; index += 1) {
+      const trial = currentTrials[index];
+
+      setMultiRunner((currentState) => ({
+        ...currentState,
+        progress: { current: index, total: currentTrials.length },
+      }));
+
+      try {
+        const rawResults = await fetchBenchmark(apiUrl, trial.problem);
+        const processedResults = await buildTrialOutcome(trial, rawResults, apiUrl);
+
+        collectedResults.push({
+          ...trial,
+          createdAt: new Date().toISOString(),
+
+          rawResults,
+          results: processedResults,
+
+          // ✅ use the same extractor as single-runner
+          agentRows: getAgentRows(rawResults),
+
+          matchedAgents: processedResults.matchedAgents ?? [],
+          matched: processedResults.matched ?? false,
+          totalTokens: processedResults.totalTokens ?? 0,
+        });
+      } catch (err) {
+        collectedResults.push({
+          ...trial,
+          createdAt: new Date().toISOString(),
+          error: err.message,
+          rawResults: [],
+          results: [],
+          agentRows: [],
+          matchedAgents: [],
+          matched: false,
+          totalTokens: 0,
+        });
+      }
     }
 
-    const currentTrials = multiRunner.trials;
-    const currentFileName = multiRunner.fileName;
+    const completedRun = createBatchRunRecord({
+      fileName: currentFileName,
+      trials: currentTrials,
+      results: collectedResults,
+    });
 
     setMultiRunner((currentState) => ({
       ...currentState,
-      running: true,
-      runError: null,
-      fileError: null,
-      progress: { current: 0, total: currentTrials.length },
+      batchId: completedRun.id,
+      running: false,
+      progress: { current: currentTrials.length, total: currentTrials.length },
+      results: collectedResults,
+      lastRunAt: completedRun.createdAt,
     }));
 
-    const collectedResults = [];
+    setHistory((currentHistory) => [completedRun, ...currentHistory].slice(0, 5));
+  } catch (err) {
+    setMultiRunner((currentState) => ({
+      ...currentState,
+      running: false,
+      progress: { current: currentTrials.length, total: currentTrials.length },
+      runError: err.message,
+    }));
+  }
+};
 
-    try {
-      for (let index = 0; index < currentTrials.length; index += 1) {
-        const trial = currentTrials[index];
-
-        setMultiRunner((currentState) => ({
-          ...currentState,
-          progress: { current: index, total: currentTrials.length },
-        }));
-
-        try {
-          const rawResults = await fetchBenchmark(apiUrl, trial.problem);
-          const processedResults = await buildTrialOutcome(
-            trial,
-            rawResults,
-            apiUrl
-          );
-
-          collectedResults.push({
-            ...trial,
-            createdAt: new Date().toISOString(),
-            rawResults,
-            results: processedResults,
-            agentRows: processedResults.agentRows ?? [],
-            matchedAgents: processedResults.matchedAgents ?? [],
-            matched: processedResults.matched ?? false,
-            totalTokens: processedResults.totalTokens ?? 0,
-          });
-
-        } catch (err) {
-          collectedResults.push({
-            ...trial,
-            createdAt: new Date().toISOString(),
-            error: err.message,
-            rawResults: [],
-            results: [],
-            agentRows: [],
-            matchedAgents: [],
-            matched: false,
-            totalTokens: 0,
-          });
-        }
-      }
-
-      const completedRun = createBatchRunRecord({
-        fileName: currentFileName,
-        trials: currentTrials,
-        results: collectedResults,
-      });
-
-      setMultiRunner((currentState) => ({
-        ...currentState,
-        batchId: completedRun.id,
-        running: false,
-        progress: { current: currentTrials.length, total: currentTrials.length },
-        results: collectedResults,
-        lastRunAt: completedRun.createdAt,
-      }));
-
-      setHistory((currentHistory) => [completedRun, ...currentHistory].slice(0, 5));
-
-    } catch (err) {
-      setMultiRunner((currentState) => ({
-        ...currentState,
-        running: false,
-        progress: { current: currentTrials.length, total: currentTrials.length },
-        runError: err.message,
-      }));
-    }
-  };
 
   const handleHistoryInspect = (entry) => {
     if (isBatchRun(entry)) {
