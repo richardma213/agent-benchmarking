@@ -17,8 +17,21 @@ def benchmark(problem: str = "2+2*3"):
     results = run_benchmark(problem)
     return results
 
-@app.post("/equivalent")
-def check_equivalence(payload: dict):
+def _check_equivalence(payload: dict):
     a = payload["a"]
     b = payload["b"]
-    return {"equivalent": equivalent(a, b)}
+    return {
+        "equivalent": equivalent(a, b),
+        "a": a,
+        "b": b,
+    }
+
+
+@app.post("/equivalent")
+def check_equivalence(payload: dict):
+    return _check_equivalence(payload)
+
+
+@app.post("/equiv")
+def check_equiv(payload: dict):
+    return _check_equivalence(payload)

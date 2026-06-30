@@ -189,6 +189,26 @@ dt {
   cursor: pointer;
 }
 
+.danger-button {
+  border: 1px solid rgba(176, 0, 32, 0.18);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: rgba(176, 0, 32, 0.08);
+  color: var(--error-text);
+  font: inherit;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.danger-button:hover {
+  transform: translateY(-1px);
+  background: rgba(176, 0, 32, 0.12);
+  border-color: rgba(176, 0, 32, 0.28);
+}
+
 .primary-button {
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
@@ -345,7 +365,32 @@ dt {
 }
 
 .batch-summary-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.agent-comparison-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.comparison-card dl {
+  margin: 14px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.comparison-card dt {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.comparison-card dd {
+  margin: 6px 0 0;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .trial-results-list {
@@ -355,6 +400,14 @@ dt {
 
 .trial-result-card {
   padding: 20px;
+}
+
+.trial-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .trial-result-header {
@@ -520,7 +573,6 @@ dt {
 @media (max-width: 1080px) {
   .page-grid,
   .agent-grid,
-  .batch-summary-grid,
   .trial-details-grid {
     grid-template-columns: 1fr;
   }

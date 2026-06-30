@@ -9,6 +9,7 @@ import {
   buildTrialOutcome,
   createBatchRunRecord,
   parseTrialsFile,
+  summarizeRuns,
 } from './lib/multiRunner';
 
 const DEFAULT_API_URL = 'http://localhost:8000';
@@ -58,6 +59,7 @@ function App() {
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
   const [multiRunner, setMultiRunner] = useState({
+    batchId: null,
     fileName: '',
     trials: [],
     fileError: null,
@@ -149,6 +151,7 @@ function App() {
     try {
       const parsedTrials = await parseTrialsFile(file);
       setMultiRunner({
+        batchId: null,
         fileName: file.name,
         trials: parsedTrials,
         fileError: null,
@@ -160,6 +163,7 @@ function App() {
       });
     } catch (err) {
       setMultiRunner({
+        batchId: null,
         fileName: file.name,
         trials: [],
         fileError: err.message,
@@ -223,6 +227,7 @@ function App() {
 
       setMultiRunner((currentState) => ({
         ...currentState,
+        batchId: completedRun.id,
         running: false,
         progress: { current: currentTrials.length, total: currentTrials.length },
         results: collectedResults,
@@ -243,6 +248,7 @@ function App() {
   const handleHistoryInspect = (entry) => {
     if (isBatchRun(entry)) {
       setMultiRunner({
+        batchId: entry.id,
         fileName: entry.fileName ?? entry.title ?? 'Saved batch run',
         trials: entry.trials ?? [],
         fileError: null,
@@ -258,6 +264,33 @@ function App() {
 
     setResults(entry);
     setActivePage('overview');
+  };
+
+  const handleRemoveMultiRunnerTrial = (trialId) => {
+    const nextResults = multiRunner.results.filter((trial) => trial.id !== trialId);
+
+    setMultiRunner((currentState) => ({
+      ...currentState,
+      results: nextResults,
+    }));
+
+    if (!multiRunner.batchId) {
+      return;
+    }
+
+    const updatedSummary = summarizeRuns(nextResults);
+
+    setHistory((currentHistory) =>
+      currentHistory.map((entry) =>
+        entry.id === multiRunner.batchId
+          ? {
+              ...entry,
+              results: nextResults,
+              summary: updatedSummary,
+            }
+          : entry,
+      ),
+    );
   };
 
   const renderedContent = {
@@ -307,6 +340,7 @@ function App() {
         lastRunAt={multiRunner.lastRunAt}
         onAttachFile={handleMultiRunnerAttachFile}
         onRunAllTrials={handleRunMultiRunner}
+        onRemoveTrial={handleRemoveMultiRunnerTrial}
       />
     ),
   };

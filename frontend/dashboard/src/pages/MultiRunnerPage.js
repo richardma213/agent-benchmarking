@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { summarizeRuns } from '../lib/multiRunner';
+import { summarizeAgentResults, summarizeRuns } from '../lib/multiRunner';
 import { normalizeComparableText } from '../lib/benchmarkApi';
 
 function StatusPill({ matched, error }) {
@@ -23,9 +23,15 @@ function MultiRunnerPage({
   formatLatency,
   onAttachFile,
   onRunAllTrials,
+  onRemoveTrial,
 }) {
   const inputRef = useRef(null);
   const summary = useMemo(() => summarizeRuns(results), [results]);
+  const agentSummary = useMemo(() => summarizeAgentResults(results), [results]);
+
+  const correctPercentLabel = `${summary.correctPercent.toFixed(1)}%`;
+  const avgTokensLabel = summary.completed ? summary.averageTokensPerCompleted.toFixed(1) : '—';
+  const avgLatencyLabel = summary.averageLatencySeconds ? formatLatency(summary.averageLatencySeconds) : '—';
 
   return (
     <div className="page-grid single-column">
@@ -80,22 +86,59 @@ function MultiRunnerPage({
 
       {results.length > 0 && (
         <>
+          {agentSummary.length > 0 && (
+            <section className="agent-comparison-grid">
+              {agentSummary.map((agent) => (
+                <article key={agent.agentName} className="agent-card comparison-card">
+                  <p className="agent-name">{agent.agentName}</p>
+                  <h3>Agent comparison</h3>
+                  <dl>
+                    <div>
+                      <dt>Correct</dt>
+                      <dd>{agent.correctPercent.toFixed(1)}%</dd>
+                    </div>
+                    <div>
+                      <dt>Avg latency</dt>
+                      <dd>{formatLatency(agent.averageLatencySeconds)}</dd>
+                    </div>
+                    <div>
+                      <dt>Total tokens</dt>
+                      <dd>{agent.totalTokens}</dd>
+                    </div>
+                    <div>
+                      <dt>Runs</dt>
+                      <dd>{agent.attempts}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </section>
+          )}
+
           <section className="stats-grid batch-summary-grid">
             <article className="stat-card">
               <span className="stat-label">Trials</span>
               <strong>{summary.total}</strong>
             </article>
             <article className="stat-card">
-              <span className="stat-label">Completed</span>
-              <strong>{summary.completed}</strong>
-            </article>
-            <article className="stat-card">
-              <span className="stat-label">Matched</span>
-              <strong>{summary.matched}</strong>
+              <span className="stat-label">Correct answers</span>
+              <strong>{correctPercentLabel}</strong>
             </article>
             <article className="stat-card">
               <span className="stat-label">Total tokens</span>
               <strong>{summary.totalTokens || '—'}</strong>
+            </article>
+            <article className="stat-card">
+              <span className="stat-label">Avg tokens / trial</span>
+              <strong>{avgTokensLabel}</strong>
+            </article>
+            <article className="stat-card">
+              <span className="stat-label">Avg latency</span>
+              <strong>{avgLatencyLabel}</strong>
+            </article>
+            <article className="stat-card">
+              <span className="stat-label">Completed</span>
+              <strong>{summary.completed}</strong>
             </article>
           </section>
 
@@ -116,7 +159,14 @@ function MultiRunnerPage({
                       <p className="agent-name">Trial {trial.index}</p>
                       <h3>{trial.problem}</h3>
                     </div>
-                    <StatusPill matched={trial.matched} error={trial.error} />
+                    <div className="trial-result-actions">
+                      <StatusPill matched={trial.matched} error={trial.error} />
+                      {!running && onRemoveTrial && (
+                        <button className="danger-button" onClick={() => onRemoveTrial(trial.id)}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="trial-details-grid">
@@ -154,7 +204,7 @@ function MultiRunnerPage({
                         <span>Match</span>
                       </div>
                       {trial.agentRows.map((row) => {
-                        const matchesExpected = normalizeComparableText(row.answer) === normalizeComparableText(trial.expected);
+                        const matchesExpected = (trial.matchedAgents ?? []).some((agent) => agent.agentName === row.agentName);
 
                         return (
                           <div key={row.agentName} className={matchesExpected ? 'results-row matched-row' : 'results-row'}>
