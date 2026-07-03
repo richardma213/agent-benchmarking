@@ -1,0 +1,206 @@
+===============================
+Sample 1 Report: Model used: qwen2.5-3b-instruct
+===============================
+
+math_agent
+-------------------------------
+Correct:            93.5%
+Avg latency:        1911.34 ms
+Total tokens:       6916
+Runs:               77
+
+ml_agent
+-------------------------------
+Correct:            53.2%
+Avg latency:        2197.90 ms
+Total tokens:       7248
+Runs:               77
+
+Overall Trial Stats
+-------------------------------
+Trials:             77
+Correct answers:    73.4%
+Total tokens:       14164
+Avg tokens/trial:   183.9
+Avg latency:        2054.62 ms
+Completed:          77
+
+===============================
+Sample 2 Report: Model used: qwen2.5-3b-instruct
+===============================
+
+math_agent
+-------------------------------
+Correct:            93.5%
+Avg latency:        1985.54 ms
+Total tokens:       6757
+Runs:               77
+
+ml_agent
+-------------------------------
+Correct:            50.6%
+Avg latency:        2216.54 ms
+Total tokens:       7245
+Runs:               77
+
+Overall Trial Stats
+-------------------------------
+Trials:             77
+Correct answers:    72.1%
+Total tokens:       14002
+Avg tokens/trial:   181.8
+Avg latency:        2101.04 ms
+Completed:          77
+
+===============================
+Sample 3 Report: Model used: qwen2.5-7b-instruct-1m
+===============================
+
+math_agent
+-------------------------------
+Correct:            85.5%
+Avg latency:        581.84 ms
+Total tokens:       4448
+Runs:               62
+
+ml_agent
+-------------------------------
+Correct:            77.4%
+Avg latency:        2295.84 ms
+Total tokens:       5120
+Runs:               62
+
+Overall Trial Stats
+-------------------------------
+Trials:             62
+Correct answers:    81.5%
+Total tokens:       9568
+Avg tokens/trial:   154.3
+Avg latency:        1438.84 ms
+Completed:          62
+
+
+===============================
+Sample 4 Report: Model used: qwen2.5-7b-instruct-1m
+===============================
+
+
+math_agent
+-------------------------------
+Correct:            85.5%
+Avg latency:        674.89 ms
+Total tokens:       4444
+Runs:               62
+
+ml_agent
+-------------------------------
+Correct:            77.4%
+Avg latency:        2310.77 ms
+Total tokens:       5124
+Runs:               62
+
+Overall Trial Stats
+-------------------------------
+Trials:             62
+Correct answers:    81.5%
+Total tokens:       9568
+Avg tokens/trial:   154.3
+Avg latency:        1492.83 ms
+Completed:          62
+
+========================================
+Average Summary: qwen2.5‑3b‑instruct
+(Sample 1 + Sample 2)
+========================================
+
+math_agent
+----------------------------------------
+Correct:            93.5%
+Avg latency:        1948.44 ms
+Total tokens:       6836.5
+Runs:               77
+
+ml_agent
+----------------------------------------
+Correct:            51.9%
+Avg latency:        2207.22 ms
+Total tokens:       7246.5
+Runs:               77
+
+Overall Trial Stats
+----------------------------------------
+Trials:             77
+Correct answers:    72.75%
+Total tokens:       14083
+Avg tokens/trial:   182.85
+Avg latency:        2077.83 ms
+Completed:          77
+
+
+========================================
+Average Summary: qwen2.5‑7b‑instruct‑1m
+(Sample 3 + Sample 4)
+========================================
+
+math_agent
+----------------------------------------
+Correct:            85.5%
+Avg latency:        628.37 ms
+Total tokens:       4446
+Runs:               62
+
+ml_agent
+----------------------------------------
+Correct:            77.4%
+Avg latency:        2303.31 ms
+Total tokens:       5122
+Runs:               62
+
+Overall Trial Stats
+----------------------------------------
+Trials:             62
+Correct answers:    81.5%
+Total tokens:       9568
+Avg tokens/trial:   154.3
+Avg latency:        1465.84 ms
+Completed:          62
+
+
+========================================
+Final Combined Average (All 4 Trials)
+========================================
+
+math_agent
+----------------------------------------
+Correct:            89.5%
+Avg latency:        1288.41 ms
+Total tokens:       5641.25
+
+ml_agent
+----------------------------------------
+Correct:            64.65%
+Avg latency:        2255.27 ms
+Total tokens:       6184.25
+
+Overall Trial Stats
+----------------------------------------
+
+Correct answers:    77.125%
+Total tokens:       11825.25
+Avg tokens/trial:   168.57
+Avg latency:        1771.84 ms
+
+
+========================================
+Dataset Cleaning Note
+========================================
+A small number of ambiguous problems (~10%) were removed due to 
+inconsistent symbolic grading behavior.
+
+Removed problem IDs:
+13, 14, 17, 50, 51, 52, 57, 58, 59, 61
+
+Limit problems were removed for 7B model trials because they produced
+unstable token usage across agents.
+
+

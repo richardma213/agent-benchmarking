@@ -1,4 +1,4 @@
-# symbench
+# BenchSym
 
 A symbolic‑math benchmarking platform built with FastAPI, LM Studio, and Hugging Face Router for multi‑agent Qwen inference, featuring automated SymPy equivalence checking across 100+ integrals.
 
