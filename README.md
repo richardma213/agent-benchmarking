@@ -19,7 +19,7 @@ BenchSym is a lightweight evaluation system for symbolic‑math LLMs. It runs mu
 - **Python** — evaluation pipeline and agent harness  
 
 ---
-## DEMO
+## Sample UI Run
 ![Dashboard](./images/demo1.png)
 ![Dashboard](./images/demo2.png)
 
