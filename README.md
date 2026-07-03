@@ -1,62 +1,91 @@
 # BenchSym
 
-A symbolic‑math benchmarking platform built with FastAPI, LM Studio, and Hugging Face Router for multi‑agent Qwen inference, featuring automated SymPy equivalence checking across 100+ integrals.
+A symbolic‑math benchmarking framework built with FastAPI, SymPy, LM Studio, and Hugging Face Router. BenchSym evaluates multiple LLM agents on calculus problems, normalizes their outputs, and verifies correctness through symbolic equivalence checking.
 
 ---
 
 ## About
 
-SymBench is a lightweight evaluation framework for symbolic‑math LLMs. It runs multiple agents on a shared set of integrals, normalizes their outputs, and verifies correctness using SymPy. The system supports both local inference (LM Studio) and cloud‑based inference (Hugging Face Router), enabling reproducible comparisons across different model backends.
+BenchSym is a lightweight evaluation system for symbolic‑math LLMs. It runs multiple agents on a shared set of calculus problems, parses and normalizes their outputs, and checks correctness using SymPy. The platform supports both local inference (LM Studio) and cloud‑based inference (Hugging Face Router), enabling reproducible comparisons across different Qwen model backends.
 
 ---
 
 ## Tools Used
 
-- **FastAPI** — backend service for routing, orchestration, and evaluation  
+- **FastAPI** — backend routing, orchestration, and evaluation  
+- **SymPy** — symbolic parsing, simplification, and equivalence checking  
 - **LM Studio** — local inference for Qwen 3–7B models  
 - **Hugging Face Router** — cloud inference fallback / multi‑backend support  
-- **SymPy** — symbolic parsing, normalization, and equivalence checking  
-- **Python** — core logic, evaluation pipeline, and agent harness  
-- **Vite / TypeScript (optional)** — lightweight frontend for running test batches  
+- **Python** — evaluation pipeline and agent harness  
 
 ---
 
 ## Development Process
 
-1. **Problem Set Design**  
-   - Curated 100+ integrals and symbolic expressions for evaluation  
-   - Standardized formatting for ingestion and reproducibility  
+### 1. Problem Set Design
+- Curated **60+ cleaned calculus problems**  found in test.json
+- Standardized formatting for reproducible ingestion  
 
-2. **Backend Architecture**  
-   - Built a FastAPI service to coordinate multi‑agent inference  
-   - Added endpoints for running batches, checking equivalence, and exporting results  
+### 2. Backend Architecture
+- Built a FastAPI service coordinating multi‑agent inference  
+- Added endpoints for batch runs, equivalence checking, and result export  
 
-3. **Agent Integration**  
-   - Connected LM Studio for local Qwen inference  
-   - Added Hugging Face Router for cloud‑based model execution  
-   - Unified both into a consistent multi‑agent workflow  
+### 3. Agent Integration
+- Connected LM Studio for local Qwen 3B/7B inference  
+- Added Hugging Face Router for cloud execution  
+- Unified both into a consistent multi‑agent workflow  
 
-4. **Equivalence Engine**  
-   - Implemented SymPy‑based parsing, simplification, and symbolic comparison  
-   - Added normalization rules to handle constants, formatting differences, and special functions  
+### 4. Equivalence Engine
+- Implemented SymPy‑based parsing and symbolic comparison  
+- Added normalization rules for constants, formatting differences, and special functions  
 
-5. **Benchmark Harness**  
-   - Automated text‑file ingestion  
-   - Logged outputs, errors, and correctness results  
-   - Produced reproducible evaluation runs for model comparison  
+### 5. Benchmark Harness
+- Automated text‑file ingestion and normalization  
+- Logged outputs, errors, and correctness results  
+- Produced reproducible evaluation runs for model comparison  
+
+---
+
+## Results & Findings
+
+BenchSym was used to benchmark two agents across four evaluation runs (Qwen 3B and Qwen 7B).  
+Below are the **final combined averages** across all trials:
+
+### **math_agent**
+- **Accuracy:** 89.5%  
+- **Avg latency:** 1288.41 ms  
+- **Total tokens:** 5641.25  
+
+### **ml_agent**
+- **Accuracy:** 64.65%  
+- **Avg latency:** 2255.27 ms  
+- **Total tokens:** 6184.25  
+
+### **Overall Trial Stats**
+- **Correct answers:** 77.125%  
+- **Total tokens:** 11825.25  
+- **Avg tokens/trial:** 168.57  
+- **Avg latency:** 1771.84 ms  
+
+### **Key Improvements**
+- **∼38% higher accuracy**  
+- **∼43% lower latency**  
+- **∼9% fewer tokens**  
+
+These results show that structured symbolic‑math agents, combined with normalization and SymPy verification, can significantly outperform direct model computation on calculus tasks.
 
 ---
 
 ## Why This Project Matters
 
-SymBench provides a practical way to evaluate symbolic‑math LLMs beyond raw text comparison. By enforcing SymPy‑verified equivalence and supporting multiple inference backends, it offers a reliable foundation for benchmarking correctness, consistency, and model behavior on mathematically rigorous tasks.
+Symbolic‑math tasks require more than text matching — they require structural correctness. BenchSym provides a reproducible way to evaluate LLMs on mathematically rigorous problems using symbolic equivalence rather than raw string comparison. This makes it a practical tool for studying model reliability, consistency, and reasoning behavior.
 
 ---
 
 ## Future Work
 
-- Add support for more model families (LLaMA, DeepSeek, Mistral)  
-- Expand the problem set beyond integrals (ODEs, algebraic simplification, limits)  
+- Support additional model families (LLaMA, DeepSeek, Mistral)  
+- Expand beyond calculus (ODEs, algebraic simplification, limits)  
 - Add a dashboard for visualizing correctness and failure modes  
 - Integrate caching and batch scheduling for large‑scale runs  
 
