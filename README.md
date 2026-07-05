@@ -1,15 +1,8 @@
-# BenchSym
-
-A symbolic‑math benchmarking framework built with FastAPI, SymPy, LM Studio, and Hugging Face Router. BenchSym evaluates multiple LLM agents on calculus problems, normalizes their outputs, and verifies correctness through symbolic equivalence checking.
-
----
-
 ## About
 
 BenchSym is a lightweight evaluation system for symbolic‑math LLMs. It runs multiple agents on a shared set of calculus problems, parses and normalizes their outputs, and checks correctness using SymPy. The platform supports both local inference (LM Studio) and cloud‑based inference (Hugging Face Router), enabling reproducible comparisons across different Qwen model backends.
 
 ---
-
 ## Tools Used
 
 - **FastAPI** — backend routing, orchestration, and evaluation  
@@ -25,29 +18,7 @@ BenchSym is a lightweight evaluation system for symbolic‑math LLMs. It runs mu
 
 ## Development Process
 
-### 1. Problem Set Design
-- Curated **60+ cleaned calculus problems**  found in test.json
-- Standardized formatting for reproducible ingestion  
-
-### 2. Backend Architecture
-- Built a FastAPI service coordinating multi‑agent inference  
-- Added endpoints for batch runs, equivalence checking, and result export  
-
-### 3. Agent Integration
-- Connected LM Studio for local Qwen 3B/7B inference  
-- Added Hugging Face Router for cloud execution  
-- Unified both into a consistent multi‑agent workflow  
-
-### 4. Equivalence Engine
-- Implemented SymPy‑based parsing and symbolic comparison  
-- Added normalization rules for constants, formatting differences, and special functions  
-
-### 5. Benchmark Harness
-- Automated text‑file ingestion and normalization  
-- Logged outputs, errors, and correctness results  
-- Produced reproducible evaluation runs for model comparison  
-
----
+I began by building two agents: ml_agent, which solves problems directly through LLM inference, and math_agent, which uses an LLM parser to convert expressions into SymPy‑compatible syntax for symbolic evaluation. After that, I developed an automated benchmarking pipeline that loads problems from JSON files, runs both agents, and validates outputs using LLM‑assisted checking and regex parsing. This workflow eliminated manual testing and made it easy to run large batches of problems quickly. For testing, a set of 60+ calculus tasks was generated, ran through the automated pipeline, and then checked for any inaccuracies. Final results are generated automatically by the pipeline and averaged.
 
 ## Results & Findings
 
