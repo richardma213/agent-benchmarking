@@ -52,7 +52,7 @@ These results show that structured symbolic‑math agents, combined with normali
 
 ## Why This Project Matters
 
-Symbolic‑math tasks require more than text matching — they require structural correctness. BenchSym provides a reproducible way to evaluate LLMs on mathematically rigorous problems using symbolic equivalence rather than raw string comparison. This makes it a practical tool for studying model reliability, consistency, and reasoning behavior.
+Because symbolic‑math tasks require structural correctness, BenchSym evaluates LLMs using symbolic equivalence rather than string similarity. This framework allows us to compare models from 3B to 70B and study how scale influences optimization strategies, reasoning consistency, and overall reliability on mathematically rigorous tasks.
 
 ---
 
